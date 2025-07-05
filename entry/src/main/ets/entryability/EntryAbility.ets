@@ -1,47 +1,62 @@
-import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-import { AdvertClass } from 'basic';
+import { adManagerFinal, adManger, AdvertClass, userSetting } from 'basic';
 
-// import { AdvertClass, UserSettingClass } from '@hm/basic'
-
-const DOMAIN = 0x0000;
+// 云端广告
+const cloudAd: AdvertClass = {
+  showAd: true,
+  isFull: false,
+  adTime: 5,
+  adImg: $r("app.media.start")
+}
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
-    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
   }
 
   onDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
   }
 
-  onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+  async onWindowStageCreate(windowStage: window.WindowStage): Promise<void> {
+    userSetting.context = this.context // 首选项赋值上下文
+    // 发起一个向云端获取广告数据的请求
+    const ad = await new Promise<AdvertClass>((resolve, reject) => {
+      setTimeout(() => {
+        resolve(cloudAd)
+      }, 500)
+    })
+    await userSetting.setUserAd(ad) // 将广告设置到首选项
+    // 此时应该判断是不是展示广告？
+    // 1. 最朴素的一种方式
+    // if (ad.showAd) {
+    //   windowStage.loadContent('pages/start/Start');
+    // } else {
+    //   windowStage.loadContent('pages/Index');
+    // }
+    // 2. 略微有点意思的模式
+    // if (ad.showAd) {
+    //   const win = await windowStage.createSubWindow("ad_win") // 二级窗口的实际对象
+    //   await win.showWindow() // 展示二级窗口
+    //   win.setUIContent("pages/Start/Start")
+    // }
 
-    windowStage.loadContent('pages/Index', (err) => {
-      if (err.code) {
-        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
-        return;
-      }
-      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
-    });
+    await windowStage.loadContent("pages/Index"); // 必须等到有了UIContext才可以使用
+    if (ad.showAd) {
+      adManagerFinal.context = this.context
+      // adManger.context = this.context
+      // await adManger.showAd("pages/Start/Start", 330, 440)
+      adManagerFinal.showAd(ad) // 展示广告
+    }
   }
 
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+
   }
 
   onBackground(): void {
-    // Ability has back to background
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
   }
 }
