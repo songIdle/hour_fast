@@ -1,7 +1,7 @@
 import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
-import { adManagerFinal, adManger, AdvertClass, userSetting } from 'basic';
+import { adManagerFinal, adManger, AdvertClass, TOKEN_KEY, userSetting } from 'basic';
 
 // 云端广告
 const cloudAd: AdvertClass = {
@@ -40,8 +40,13 @@ export default class EntryAbility extends UIAbility {
     //   await win.showWindow() // 展示二级窗口
     //   win.setUIContent("pages/Start/Start")
     // }
-
-    await windowStage.loadContent("pages/Index"); // 必须等到有了UIContext才可以使用
+    const token = userSetting.getUserToken()
+    AppStorage.setOrCreate(TOKEN_KEY, token)
+    if (token) {
+      await windowStage.loadContent('pages/Index'); // 跳到主页
+    } else {
+      await windowStage.loadContent('pages/login/Login'); // 跳到主页
+    } // 必须等到有了UIContext才可以使用
     if (ad.showAd) {
       adManagerFinal.context = this.context
       // adManger.context = this.context

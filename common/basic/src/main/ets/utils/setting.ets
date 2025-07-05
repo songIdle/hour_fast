@@ -1,5 +1,5 @@
 import { preferences } from '@kit.ArkData'
-import { USER_SETTING, USER_SETTING_AD } from '../constants'
+import { TOKEN_KEY, USER_SETTING, USER_SETTING_AD } from '../constants'
 import { AdvertClass } from '../viewmodels'
 
 
@@ -29,6 +29,19 @@ export class UserSetting {
   getUserAd() {
     const store = this.getStore()
     return store.getSync(USER_SETTING_AD, defaultAd) as AdvertClass
+  }
+
+  // 获取用token
+  getUserToken() {
+    const store = this.getStore()
+    return store.getSync(TOKEN_KEY, "") as string
+  }
+
+  // 设置用户token
+  async setUserToken(token: string) {
+    const store = this.getStore()
+    store.putSync(TOKEN_KEY, token)
+    await store.flush()
   }
 }
 
