@@ -1,3 +1,5 @@
 export * from './setting'
 export * from './ad_manager'
 export * from './ad_manager_final'
+export * from './request_http'
+export * from './request_axios'
